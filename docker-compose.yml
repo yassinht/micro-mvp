@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6.0
+    ports: ["27017:27017"]
+    volumes:
+      - mongo_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  device-service:
+    build: ./device-service/device-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  user-service:
+    build: ./user-service/user-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongo
+
+  gql-gateway:
+    build: ./gql-gateway
+    ports:
+      - "4000:4000"
+    depends_on:
+      - device-service
+      - user-service
+
+  angular:
+    build: ./angular-dashboard/angular-dashboard
+    ports:
+      - "4200:80"
+    depends_on:
+      - gql-gateway
+
+  python-sim:
+    build: ./python-sim
+    depends_on:
+      - rabbitmq
+
+volumes:
+  mongo_data:
+
