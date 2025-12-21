@@ -1,6 +1,6 @@
 # python-sim/test_publish.py
 import pika, os, json
-url = os.getenv('RABBITMQ_URL','amqp://guest:guest@localhost:5672')
+url = os.getenv('RABBITMQ_URL','amqp://micro:micro_pass@rabbitmq:5672')
 params = pika.URLParameters(url)
 conn = pika.BlockingConnection(params)
 ch = conn.channel()

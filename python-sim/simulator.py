@@ -6,7 +6,7 @@ import random
 import pika
 from datetime import datetime
 
-RABBIT_URL = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@rabbitmq:5672')
+RABBIT_URL = os.getenv('RABBITMQ_URL', 'amqp://micro:micro_pass@rabbitmq:5672')
 params = pika.URLParameters(RABBIT_URL)
 exchange = 'telemetry'
 routing_key_template = 'device.{device_id}'
@@ -27,7 +27,16 @@ def gen_values(device):
 
 def main():
     print("Simulator connecting to RabbitMQ:", RABBIT_URL)
-    conn = pika.BlockingConnection(params)
+
+    # Retry loop until RabbitMQ is ready
+    while True:
+        try:
+            conn = pika.BlockingConnection(params)
+            break
+        except pika.exceptions.AMQPConnectionError:
+            print("Waiting for RabbitMQ to be ready...")
+            time.sleep(2)
+
     ch = conn.channel()
     ch.exchange_declare(exchange=exchange, exchange_type='topic', durable=False)
 
@@ -43,7 +52,6 @@ def main():
                 rk = routing_key_template.format(device_id=d["deviceId"])
                 ch.basic_publish(exchange=exchange, routing_key=rk, body=json.dumps(msg))
                 print(f"Published → {rk}: {msg}")
-            # sleep between bursts
             time.sleep(2)
     except KeyboardInterrupt:
         print("Simulator stopped by user")

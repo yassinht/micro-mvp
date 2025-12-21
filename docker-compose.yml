@@ -1,9 +1,8 @@
-version: "3.8"
-
 services:
   mongo:
     image: mongo:6.0
-    ports: ["27017:27017"]
+    ports:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
 
@@ -12,11 +11,18 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: micro
+      RABBITMQ_DEFAULT_PASS: micro_pass
 
   device-service:
     build: ./device-service/device-service
     ports:
       - "3001:3001"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/micro_mvp
+      RABBITMQ_URL: amqp://micro:micro_pass@rabbitmq:5672
+      GQL_GATEWAY_URL: http://gql-gateway:4000/events
     depends_on:
       - mongo
       - rabbitmq
@@ -45,9 +51,10 @@ services:
 
   python-sim:
     build: ./python-sim
+    environment:
+      RABBITMQ_URL: amqp://micro:micro_pass@rabbitmq:5672
     depends_on:
       - rabbitmq
 
 volumes:
   mongo_data:
-

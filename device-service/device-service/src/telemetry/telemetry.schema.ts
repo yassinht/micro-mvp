@@ -13,7 +13,7 @@ export interface TelemetryDocument extends Document {
 export const TelemetrySchema = new Schema<TelemetryDocument>({
 
     deviceId: {type : String,required:true,index:true},
-    timestamp:{type:String , requierd:true},
+timestamp: { type: String, required: true },
     location:{type:String},
     values:{type:Schema.Types.Mixed},
     raw: {type: Schema.Types.Mixed},

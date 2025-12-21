@@ -15,7 +15,7 @@ export class TelemetryService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log('TelemetryService starting - connecting to RabbitMQ...');
-    const RABBIT = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
+    const RABBIT = process.env.RABBITMQ_URL || 'amqp://micro:micro_pass@rabbitmq:5672';
     const EXCHANGE = 'telemetry';
     try {
       const conn = await amqp.connect(RABBIT);
@@ -67,10 +67,11 @@ export class TelemetryService implements OnModuleInit {
         }
       });
 
-    } catch (err) {
-      this.logger.error('RabbitMQ connection failed: ' + err.message, err.stack);
-      throw err;
-    }
+  } catch (err) {
+  this.logger.error('RabbitMQ not ready, retrying in 5s...');
+  setTimeout(() => this.onModuleInit(), 5000);
+}
+
   }
 
   // simple query for controller
